@@ -1,0 +1,24 @@
+# Insert dsh-plugin-better-locale: a third-language (ja/ko/...) override
+# layer for DSH i18n. The plugin monkey-patches LocaleRuntime.prototype.lookup
+# at client-apply time so calls to ctx.locale's translate chain consult the
+# plugin's override store before falling back to DSH's native zh/en
+# dictionaries. The dsh active locale is never mutated — schema, LanguageRow,
+# and document language all keep their original behaviour; only the rendered
+# text is replaced when an override translation exists.
+#
+# The plugin is client-only. Its browser half:
+#   - patches LocaleRuntime.prototype.lookup (HMR-safe, idempotent, with a
+#     startup probe that downgrades to no-op if the upstream class shape
+#     changes),
+#   - publishes ctx.betterLocale (a registry service other plugins may call
+#     to register their own dictionaries for new languages),
+#   - registers a better-sidebar tab (id `better-locale:switcher`) listing
+#     the registered override languages + a "use DSH native zh/en" option,
+#     when better-sidebar is available (optional peer).
+#
+# Persistence: the selected override id is stored in localStorage
+# (`dsh-plugin-better-locale:active`); the dsh `locale.preference` setting
+# is never written, sidestepping the LOCALE_IDS schema enum.
+- insert:
+    - id: dsh-plugin-better-locale
+      name: '@huanlin/dsh-plugin-better-locale'
