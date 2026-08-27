@@ -6,17 +6,16 @@
 
 **中文** | [English](README.md)
 
-DSH web 插件：在 DSH 原生中文 / 英文之外，为界面增加 19 种第三语言覆盖（日语 / 韩语 / 法语 / 德语 / ...）。覆盖范围包括 DSH 本体界面文案与所有已接入的第三方插件文案。
+DSH web 插件：为 DSH 原生 i18n 内置 19 种第三语言字典（日语 / 韩语 / 法语 / 德语 / ...）。通过 DSH v0.1.2-alpha.1 的原生第三方语言 API（`locale.addLanguage` + `locale.register(ns, locale, dict)`）注册，语言直接出现在 DSH 设置页原生 Language 行中；未覆盖文案按 key 级 fallback 链回退英文。
 
 | | |
 |---|---|
 | **包名** | `@huanlin/dsh-plugin-better-locale` |
 | **仓库** | `huanlinoto/dsh-plugin-better-locale` |
+| **要求** | DSH `dsh-v0.1.2-alpha.1` 及以上 |
 | **License** | AGPL-3.0 |
 
 ## 支持的语言
-
-覆盖**借用 DSH 的英文槽位**渲染第三语言——切换后界面显示选定的覆盖语言，未覆盖的部分回退到英文。
 
 | 语言 | id | 显示名 |
 |---|---|---|
@@ -54,30 +53,28 @@ dsh plugin --profile web add "github:huanlinoto/dsh-plugin-better-locale"
 
 ## 使用
 
-1. **先把 DSH 切到 English**（设置 → 语言 → English）。
+打开 **设置 → General → Language**：19 种语言与 DSH 内置的中文 / English 并列。点选任意语言，整个界面立即切换——选择持久化在 DSH 的 `locale.preference` 设置里（同一 DSH home 下跨浏览器 / 跨设备共享），`<html lang>` 同步更新。
 
-   覆盖借用 DSH 的英文槽位——DSH 在中文时覆盖不生效，切换器会显示「请将 DSH 切换到英文以查看 [语言名]」提示。
-
-2. **在设置 → General 区块选择覆盖语言**。
-
-   better-locale 在 DSH 设置页的 General 分区注册了一行语言选择器（在原生 Language 行之后）。点开下拉选择目标语言，界面立即切换。
-
-3. **切回原生**：在同一行选择「使用 DSH 原生（zh/en）」。
-
-选择会持久化到浏览器 localStorage，刷新页面后自动恢复。
+未覆盖的命名空间 / key 通过 DSH 的 key 级 fallback 链回退英文（所选语言 → `en`）。翻译对照表见 `TRANSLATION.md`（`pnpm run gen:translations` 重新生成）。
 
 ## 覆盖范围
 
-- **DSH 本体**：`common` / `settings.locale` / `command` / 等内置命名空间（见 `src/client/dictionaries/<lang>.ts`）。
-- **第三方插件**：已接入 better-locale 的插件（如 dsh-better-sidebar、yet-another-subagent、dsh-aigc-canvas 等 huanlinoto 系列插件）会跟随覆盖；未接入的插件回退英文。
+- **DSH 本体**：内置命名空间（`common` / `settings.locale` / `command` / 等——满配 29 个命名空间，部分语言为子集），见 `src/client/dictionaries/<lang>.ts`。
+- **第三方插件**：任何插件都可以通过原生 API（`ctx.locale.register(ns, locale, dict)`）直接为这些语言补充自己的词典，无需任何 better-locale 专属接入。见[开发者指南](docs/developer-guide/README.zh-CN.md)。
 
-想让你的插件也跟随覆盖？看[开发者指南](docs/developer-guide/README.zh-CN.md)。
+## 从 0.1.x 迁移（v0.1.2-alpha.1 适配）
+
+0.1.x 通过 monkey-patch `LocaleRuntime.prototype.lookup`、借用 DSH 英文槽位的方式注入第三语言（自定义设置行 + localStorage 持久化 + 仅英文时生效）。DSH v0.1.2-alpha.1 将这些全部原生化了，插件随之移除了该 hack：
+
+- 自定义的「语言覆盖」设置行已移除——直接用 DSH 原生 Language 行；
+- 持久化从浏览器 localStorage 改为 DSH 的 `locale.preference` 设置；
+- 任意 DSH 语言下覆盖都生效（不再需要「先切到 English」）；
+- `ctx.betterLocale` 服务已移除——插件词典直接通过 `ctx.locale` 注册。
 
 ## 已知限制
 
-- **必须切到 English**：覆盖只在 DSH active locale 为 `en` 时生效。DSH 在中文时覆盖完全惰性（保持原生中文，界面不混语言）。
-- **覆盖范围有限**：未覆盖的命名空间 / key 回退到英文。翻译对照表见 `TRANSLATION.md`（`pnpm run gen:translations` 重新生成）。
-- **持久化用 localStorage**：选中的覆盖语言存在浏览器 localStorage，不写 DSH 的 `locale.preference`（绕开原生 schema 枚举）。跨浏览器 / 跨 profile 不共享。
+- **覆盖范围有限**：未覆盖的命名空间 / key 回退英文。见 `TRANSLATION.md`。
+- **繁体中文变体回退英文**：`zh-HK` / `zh-TW` / `zh-MO` 声明的 fallback 是 `en`；改为回退 `zh` 可复用简体字典补缺（后续可做）。
 - **仅 web 平台**：client bundle 为浏览器设计，不在 node 端运行。
 
 ## License

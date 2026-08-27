@@ -21,13 +21,8 @@ const CLIENT_EXTERNALS = [
   'react-dom',
   'react/jsx-runtime',
   '@deepseek-ai/cordis',
-  '@deepseek-ai/dsh-client-runtime',
-  '@deepseek-ai/dsh-client-runtime/client',
   '@deepseek-ai/dsh-client-locale',
   '@deepseek-ai/dsh-client-locale/client',
-  'dsh-better-sidebar',
-  'dsh-better-sidebar/client',
-  'dsh-better-sidebar/client/service',
 ]
 
 const libConfig: UserConfig = {
@@ -43,7 +38,7 @@ const libConfig: UserConfig = {
 
 const clientConfig: UserConfig = {
   name: `${ID}/client`,
-  entry: { client: 'src/client/index.tsx' },
+  entry: { client: 'src/client/index.ts' },
   outDir: 'lib',
   format: ['esm'],
   platform: 'browser',

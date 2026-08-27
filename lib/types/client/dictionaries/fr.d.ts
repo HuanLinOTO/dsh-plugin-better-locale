@@ -2,8 +2,8 @@
  * French translation of DSH's UI namespaces.
  *
  * Each entry mirrors the key set of the corresponding `zh` source dictionary.
- * Registered through `BetterLocaleStore.register` so the patched `lookup`
- * returns the French text when the user has selected the `fr` override.
+ * Registered through `ctx.locale.register(ns, 'fr', dict)` so DSH's fallback
+ * chain returns the French text when `fr` is the active locale.
  *
  * @module @huanlin/dsh-plugin-better-locale/client/dictionaries/fr
  */

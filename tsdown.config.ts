@@ -7,16 +7,12 @@
  *                            `window.__ModuleLoader__.load({id, factory})`
  *                            so the client module loader can compose it)
  *
- * The browser bundle externals React and the DSH platform modules
- * (@deepseek-ai/cordis, @deepseek-ai/dsh-client-*) — the loader's module
- * table provides them at runtime. `@deepseek-ai/dsh-client-ui-primitives`
- * (Menu + chevron icon), `@deepseek-ai/dsh-client-ui-settings` (settings
- * slot types — type-only), and `@deepseek-ai/dsh-client-ui-slots`
- * (PropsStore/PropsLocale + LocaleNamespaceMap merge — type-only) are
- * also external: they are baseline platform modules seeded by the web
- * shell. No CSS-modules pipeline: the settings row uses inline styles
- * over DSH CSS tokens, so the client bundle stays self-contained
- * without a CSS plugin.
+ * Since the v0.1.2-alpha.1 adaptation the client half is a pure language
+ * pack: it registers bundled dictionaries through `ctx.locale.addLanguage`
+ * / `ctx.locale.register(ns, locale, dict)` and has no runtime imports of
+ * any DSH or React module (all DSH references are type-only, erased at
+ * build time). Externals are kept for those type-only specifiers and as a
+ * guard against accidental value imports.
  */
 import { defineConfig, type UserConfig } from 'tsdown'
 
@@ -25,9 +21,7 @@ const ID = '@huanlin/dsh-plugin-better-locale'
 /** DSH platform modules that stay external in the host bundles (peer deps). */
 const HOST_EXTERNALS = [
   '@deepseek-ai/cordis',
-  'schemastery',
   '@deepseek-ai/dsh-client-locale',
-  '@deepseek-ai/dsh-client-runtime',
   '@deepseek-ai/dsh-invariants',
 ]
 
@@ -37,16 +31,8 @@ const CLIENT_EXTERNALS = [
   'react-dom',
   'react/jsx-runtime',
   '@deepseek-ai/cordis',
-  '@deepseek-ai/dsh-client-runtime',
-  '@deepseek-ai/dsh-client-runtime/client',
   '@deepseek-ai/dsh-client-locale',
   '@deepseek-ai/dsh-client-locale/client',
-  '@deepseek-ai/dsh-client-ui-primitives',
-  '@deepseek-ai/dsh-client-ui-primitives/client',
-  '@deepseek-ai/dsh-client-ui-settings',
-  '@deepseek-ai/dsh-client-ui-settings/client',
-  '@deepseek-ai/dsh-client-ui-slots',
-  '@deepseek-ai/dsh-client-ui-slots/client',
 ]
 
 const libConfig: UserConfig = {
@@ -63,7 +49,7 @@ const libConfig: UserConfig = {
 
 const clientBundleConfig: UserConfig = {
   name: `${ID}/client`,
-  entry: { client: 'src/client/index.tsx' },
+  entry: { client: 'src/client/index.ts' },
   outDir: 'lib',
   format: ['cjs'],
   platform: 'browser',

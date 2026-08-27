@@ -1,8 +1,8 @@
 # TRANSLATION.md — 翻译对照表
 
-> 自动生成，勿手改。修改 `src/client/dictionaries/*.ts`（或插件自带 `src/client/locales.ts`）后，
+> 自动生成，勿手改。修改 `src/client/dictionaries/*.ts` 后，
 > 执行 `node scripts/generate-translation-md.mjs` 重新生成。
-> 覆盖 19 种语言的 DSH 内置命名空间；`dsh-plugin-better-locale`（插件自身文案）的 en/zh 对照见文末。
+> 覆盖 19 种第三方语言的 DSH 内置命名空间（DSH 原生 zh/en 词典不在本表内）。
 
 ## 覆盖统计
 
@@ -917,15 +917,3 @@
 | time.years | {n}س | {n} J. | {n} an(s) | {n} साल | {n}thn | {n} anni | {n}年 | {n}년 | {n}j | {n}r | {n} anos | {n}г | {n}å | {n}ปี | {n}y | {n} năm | {n}年 | {n}年 | {n}年 |
 | viewOptions.label | خيارات العرض | Ansichtsoptionen | Options d’affichage | दृश्य विकल्प | Opsi tampilan | Opzioni di visualizzazione | 表示オプション | 보기 옵션 | Weergaveopties | Opcje widoku | Opções de exibição | Параметры вида | Visningsalternativ | ตัวเลือกมุมมอง | Görünüm seçenekleri | Tùy chọn hiển thị | 檢視選項 | 檢視選項 | 檢視選項 |
 | workspace.add | إضافة مساحة عمل | Arbeitsbereich hinzufügen | Ajouter un espace de travail | वर्कस्पेस जोड़ें | Tambah ruang kerja | Aggiungi spazio di lavoro | ワークスペースを追加 | 작업 공간 추가 | Werkruimte toevoegen | Dodaj obszar roboczy | Adicionar workspace | Добавить рабочую область | Lägg till arbetsyta | เพิ่มพื้นที่ทำงาน | Çalışma alanı ekle | Thêm không gian làm việc | 新增工作區 | 新增工作區 | 新增工作區 |
-
-## 插件自身命名空间 dsh-plugin-better-locale（7 条）
-
-| Key | en | zh |
-|-----|----|----|
-| description | Override DSH\'s zh/en with a third language. The override borrows DSH\'s English slot — switch DSH to English to see the selected language. Keys without a translation fall back to DSH native. | 用第三语言覆盖 DSH 的中英文。覆盖借用 DSH 的英文槽位——请将 DSH 切换到英文以查看所选语言。未翻译的 key 自动回退到 DSH 原生语言。 |
-| heading | Language override | 语言覆盖 |
-| nativeOption | Use DSH native (zh/en) | 使用 DSH 原生（zh/en） |
-| nativeOptionDesc | No override; DSH\'s language preference wins. | 不覆盖；以 DSH 的语言偏好为准。 |
-| overrideActive | Active | 已启用 |
-| rowTitle | Language override | 语言覆盖 |
-| switchToEnHint | Switch DSH\'s language to English to see {label}. | 请将 DSH 的语言切换到英文以查看{label}。 |

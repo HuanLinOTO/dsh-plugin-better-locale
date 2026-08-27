@@ -6,17 +6,16 @@
 
 [中文](README.zh-CN.md) | **English**
 
-A DSH web plugin that adds 19 third-language overrides (Japanese / Korean / French / German / ...) on top of DSH's native Chinese / English. Coverage spans DSH's own UI copy and all third-party plugins that have opted in.
+A DSH web plugin that ships bundled third-language dictionaries (Japanese / Korean / French / German / ... — 19 languages) for DSH's native i18n. Languages are registered through DSH v0.1.2-alpha.1's native language-pack API (`locale.addLanguage` + `locale.register(ns, locale, dict)`), so they appear directly in DSH's own Language settings row; uncovered copy falls back to English per key.
 
 | | |
 |---|---|
 | **Package** | `@huanlin/dsh-plugin-better-locale` |
 | **Repo** | `huanlinoto/dsh-plugin-better-locale` |
+| **Requires** | DSH `dsh-v0.1.2-alpha.1` or newer |
 | **License** | AGPL-3.0 |
 
 ## Supported languages
-
-The override **borrows DSH's English slot** to render a third language — after switching, the UI shows the selected override language; uncovered parts fall back to English.
 
 | Language | id | Label |
 |---|---|---|
@@ -54,30 +53,28 @@ After install, restart `dsh web` and hard-refresh the browser (`Ctrl+Shift+R`).
 
 ## Usage
 
-1. **Switch DSH to English first** (Settings → Language → English).
+Open **Settings → General → Language**: every bundled language is listed alongside DSH's built-in 中文 / English. Pick one and the whole UI switches immediately — the selection persists in DSH's durable `locale.preference` setting (survives browsers and devices sharing the same DSH home), and `<html lang>` follows.
 
-   The override borrows DSH's English slot — it is inert while DSH is on Chinese. The switcher shows a "switch DSH to English to view [language]" hint in that case.
-
-2. **Pick an override language in Settings → General section.**
-
-   better-locale registers a language picker row in DSH's settings General section (right after the native Language row). Open the dropdown and pick a target language — the UI switches immediately.
-
-3. **Switch back to native:** pick "Use DSH native (zh/en)" in the same row.
-
-The selection persists to browser localStorage and survives page refresh.
+Uncovered namespaces / keys fall back to English through DSH's per-key fallback chain (selected language → `en`). Coverage table: `TRANSLATION.md` (regenerate with `pnpm run gen:translations`).
 
 ## Coverage
 
-- **DSH itself:** built-in namespaces (`common` / `settings.locale` / `command` / ...) — see `src/client/dictionaries/<lang>.ts`.
-- **Third-party plugins:** plugins that have opted into better-locale (e.g. dsh-better-sidebar, yet-another-subagent, dsh-aigc-canvas, and the rest of the huanlinoto series) follow the override; non-opted-in plugins fall back to English.
+- **DSH itself:** built-in namespaces (`common` / `settings.locale` / `command` / ... — 29 namespaces at full coverage, some languages partial) — see `src/client/dictionaries/<lang>.ts`.
+- **Third-party plugins:** any plugin can add its own dictionaries for these languages directly through the native API (`ctx.locale.register(ns, locale, dict)`) — no better-locale-specific integration needed. See the [Developer Guide](docs/developer-guide/README.md).
 
-Want your plugin to follow the override too? See the [Developer Guide](docs/developer-guide/README.md).
+## Migration from 0.1.x (v0.1.2-alpha.1 adaptation)
+
+0.1.x injected third languages by monkey-patching `LocaleRuntime.prototype.lookup` and borrowing DSH's English slot (selection in a custom settings row, persisted to localStorage, English-only activation). DSH v0.1.2-alpha.1 made all of that native, and the plugin dropped the hack:
+
+- the custom "Language override" settings row is gone — use DSH's native Language row;
+- persistence moved from browser localStorage to DSH's `locale.preference` setting;
+- the override now works with any DSH active locale (no "switch to English first" step);
+- the `ctx.betterLocale` service was removed — register plugin dictionaries through `ctx.locale` directly.
 
 ## Known limitations
 
-- **Must switch to English:** the override only takes effect when DSH's active locale is `en`. While DSH is on Chinese the override is fully inert (native Chinese preserved, no mixed languages).
-- **Coverage is partial:** uncovered namespaces / keys fall back to English. See `TRANSLATION.md` for the coverage table (regenerate with `pnpm run gen:translations`).
-- **Persistence uses localStorage:** the selected override id is stored in browser localStorage, not in DSH's `locale.preference` (we bypass the native schema enum). Not shared across browsers / profiles.
+- **Coverage is partial:** uncovered namespaces / keys fall back to English. See `TRANSLATION.md`.
+- **Traditional Chinese variants fall back to English:** `zh-HK` / `zh-TW` / `zh-MO` declare `fallback: 'en'`; a `zh` fallback would reuse the Simplified dictionary for missing keys (possible follow-up).
 - **Web only:** the client bundle targets the browser; it does not run in Node.
 
 ## License

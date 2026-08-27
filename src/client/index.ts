@@ -27,12 +27,32 @@
  *
  * @module @huanlin/dsh-plugin-better-locale/client
  */
-import type { Context } from '@deepseek-ai/cordis';
+
+import type { Context } from '@deepseek-ai/cordis'
+// Type-only: pulls the ctx.locale Context merge (LocaleRuntime with
+// addLanguage + the single-locale register overload). Erased at build
+// time, so it never hits the client-bundle purity gate.
+import type {} from '@deepseek-ai/dsh-client-locale/client'
+import { BUNDLED_LANGUAGES } from './languages.ts'
+
 /** Required services: the locale service (catalog + dictionary registry). */
-export declare const inject: string[];
+export const inject = ['locale']
+
 /**
  * Client plugin body: register every bundled language's catalog entry and
  * dictionaries, one `ctx.effect` per language.
  * @param ctx - client cordis context.
  */
-export declare function apply(ctx: Context): void;
+export function apply(ctx: Context): void {
+  for (const language of BUNDLED_LANGUAGES) {
+    ctx.effect(() => {
+      const disposers = [
+        ctx.locale.addLanguage({ id: language.id, label: language.label, fallback: language.fallback }),
+        ...Object.entries(language.dicts).map(([ns, dict]) => ctx.locale.register(ns, language.id, dict)),
+      ]
+      return () => {
+        for (const dispose of disposers) dispose()
+      }
+    }, `dsh-plugin-better-locale: language ${language.id}`)
+  }
+}

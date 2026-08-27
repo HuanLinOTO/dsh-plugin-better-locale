@@ -3,8 +3,8 @@
  *
  * Mirrors the zh key set of each source dictionary in
  * `@deepseek-ai/dsh-client-*` (zh is the source of truth). The plugin
- * registers these dicts through `BetterLocaleStore.register` so the patched
- * `lookup` returns ko when the user has selected the ko override.
+ * registers these dicts through `ctx.locale.register(ns, 'ko', dict)` so
+ * DSH's fallback chain returns ko when `ko` is the active locale.
  *
  * @module @huanlin/dsh-plugin-better-locale/client/dictionaries
  */

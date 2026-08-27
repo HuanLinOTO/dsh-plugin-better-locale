@@ -1,11 +1,11 @@
 {
   "name": "@huanlin/dsh-plugin-better-locale",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publishConfig": {
     "access": "public"
   },
   "keywords": ["dsh-plugin"],
-  "description": "DSH web 插件：通过运行时 monkey-patch LocaleRuntime.lookup 注入第三语言（ja/ko/...）覆盖，保持 dsh active locale 不变；通过 DSH 设置页（通用分区）暴露切换 UI。 | DSH web plugin: injects third-language (ja/ko/...) overrides via a runtime monkey-patch of LocaleRuntime.lookup, leaving the dsh active locale unchanged; exposes a switcher UI through the DSH settings page (General section).",
+  "description": "DSH web 插件：通过 DSH v0.1.2-alpha.1 原生第三方语言 API（locale.addLanguage + register(ns, locale, dict)）注册 19 种内置语言字典（ja/ko/fr/...），语言直接出现在 DSH 设置页原生 Language 行中切换，未覆盖文案按 fallback 链回退英文。 | DSH web plugin: registers 19 bundled third-language dictionaries (ja/ko/fr/...) through DSH v0.1.2-alpha.1's native language-pack API (locale.addLanguage + register(ns, locale, dict)); languages become selectable in DSH's own Language settings row, with per-key fallback to English.",
   "type": "module",
   "license": "AGPL-3.0",
   "main": "./lib/index.js",
@@ -36,11 +36,7 @@
     },
     "client": {
       "inject": [
-        "@deepseek-ai/dsh-client-runtime",
-        "@deepseek-ai/dsh-client-locale",
-        "@deepseek-ai/dsh-client-ui-primitives",
-        "@deepseek-ai/dsh-client-ui-settings",
-        "@deepseek-ai/dsh-client-ui-slots"
+        "@deepseek-ai/dsh-client-locale"
       ],
       "platform": "web"
     }
@@ -53,39 +49,17 @@
     "gen:translations": "node scripts/generate-translation-md.mjs"
   },
   "peerDependencies": {
-    "@deepseek-ai/cordis": "^4.0.1-rc.1",
-    "@deepseek-ai/dsh-client-locale": "^0.1.0-rc.8",
-    "@deepseek-ai/dsh-client-runtime": "^0.1.0-rc.8",
-    "@deepseek-ai/dsh-client-ui-primitives": "^0.1.0-rc.8",
-    "@deepseek-ai/dsh-client-ui-settings": "^0.1.0-rc.8",
-    "@deepseek-ai/dsh-client-ui-slots": "^0.1.0-rc.8",
-    "@deepseek-ai/dsh-invariants": "^0.1.0-rc.8",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-client-locale": "^0.1.2-alpha.1",
+    "@deepseek-ai/dsh-invariants": "^0.1.2-alpha.1"
   },
   "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": { "optional": true },
     "@deepseek-ai/dsh-client-locale": { "optional": true },
-    "@deepseek-ai/dsh-client-runtime": { "optional": true },
-    "@deepseek-ai/dsh-client-ui-primitives": { "optional": true },
-    "@deepseek-ai/dsh-client-ui-settings": { "optional": true },
-    "@deepseek-ai/dsh-client-ui-slots": { "optional": true },
-    "@deepseek-ai/dsh-invariants": { "optional": true },
-    "react": { "optional": true },
-    "react-dom": { "optional": true }
+    "@deepseek-ai/dsh-invariants": { "optional": true }
   },
   "devDependencies": {
-    "@deepseek-ai/dsh-client-locale": "0.1.1-rc.1",
-    "@deepseek-ai/dsh-client-runtime": "0.1.1-rc.1",
-    "@deepseek-ai/dsh-client-ui-primitives": "0.1.1-rc.1",
-    "@deepseek-ai/dsh-client-ui-settings": "0.1.1-rc.1",
-    "@deepseek-ai/dsh-client-ui-slots": "0.1.1-rc.1",
-    "@deepseek-ai/dsh-invariants": "0.1.1-rc.1",
     "@types/node": "^22.20.1",
-    "@types/react": "~18.3.31",
-    "@types/react-dom": "~18.3.0",
-    "jsdom": "^25.0.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
     "tsdown": "^0.15.0",
     "typescript": "^5.9.2",
     "vitest": "^3.2.7"

@@ -2,104 +2,67 @@
 
 ## Plugin overview
 
-Bundle-style DSH plugin that adds third-language (ja / ko / fr / ...) override support to DSH i18n. The plugin monkey-patches `LocaleRuntime.prototype.lookup` at client-apply time so calls to `ctx.locale`'s translate chain consult the plugin's override store before falling back to DSH's native zh/en dictionaries. The dsh active locale is never mutated — schema, LanguageRow, and `<html lang>` all keep their original behaviour; only the rendered text is replaced when an override translation exists AND DSH's active locale is `'en'` (the override borrows DSH's English slot to render a third language).
+Bundle-style DSH plugin that ships bundled third-language dictionaries (ja / ko / fr / ... — 19 languages) for DSH i18n. Since the `dsh-v0.1.2-alpha.1` adaptation the plugin is a **pure language pack on DSH's native language-pack API**: at client-apply time it registers each language's catalog entry through `ctx.locale.addLanguage({ id, label, fallback: 'en' })` and its dictionaries through the single-locale form `ctx.locale.register(ns, locale, dict)`, one `ctx.effect` per language (HMR-safe: disposal removes exactly what was added).
 
-The plugin is **client-only** (host `apply` is empty). The browser half:
-- patches `LocaleRuntime.prototype.lookup` (HMR-safe, idempotent, with a startup probe that downgrades to no-op if the upstream class shape changes),
-- publishes `ctx.betterLocale` (the override store) as a cordis service,
-- registers bundled dictionaries for 19 languages across DSH's built-in namespaces (`common` / `settings.locale` / `command` / ...),
-- registers a language-override preference row into DSH's settings General section (`settings.general.item` slot) listing the 19 override languages + a "use DSH native zh/en" option.
+Everything user-facing is owned by DSH's locale service since the native API: added languages appear in DSH's own Language settings row, selection persists in the durable `locale.preference` setting, `<html lang>` follows the active locale, `locale/change` is emitted on switches, and translation lookups walk DSH's per-key fallback chain (selected language → `en`). The plugin publishes no service, registers no UI, and holds no mutable state.
+
+The plugin is **client-only** (host `apply` is empty).
 
 ## Key conventions
 
 - **Bundle form**: `cordis.patch.yml` inserts one plugin row with no config; `package.json` has `dsh.bundle.patch`. No source patches to DSH staging.
-- **Client-only**: the host half (`src/index.ts`) has an empty `apply`. All work is in the browser half (`src/client/`).
-- **Pre-built `lib/` strategy**: `lib/` is committed (not in `.gitignore`); no `prepare` script; `github:` install works out of the box. Required because the client half depends on `@deepseek-ai/dsh-client-*` private peer deps that pnpm cannot fetch in a temporary git-install directory.
-- **Peer deps**: cordis + react + react-dom + `@deepseek-ai/dsh-client-locale` + `@deepseek-ai/dsh-client-runtime` + `@deepseek-ai/dsh-client-ui-primitives` + `@deepseek-ai/dsh-client-ui-settings` (type-only) + `@deepseek-ai/dsh-client-ui-slots` (type-only) + `@deepseek-ai/dsh-invariants`. Zero runtime npm deps. The plugin does NOT depend on better-sidebar.
-- **Settings row, not a tab**: the user-facing switcher UI is a settings General-section row (`settings.general.item` slot), registered via `ctx.slots.inject` + `ctx.slots.register` — the same pattern the locale package's own Language row uses. The row reads from a slot store (`createLanguageRowStore`) mirroring (active, options, dshActive, revision); the apply function wires two subscriptions to keep it in sync (better-locale store + DSH locale service).
-- **Framework-free store**: `store.ts` has no React / no cordis imports — pure TypeScript class. The apply function wires it to cordis (provide + subscribe → bumpRevision); the settings row's slot store (`settings-store.ts`) mirrors it to React via the slot system's `PropsStore` contract. This keeps the override store unit-testable in pure node.
-- **Pure patch helpers**: `patch.ts` exports `probeLocaleRuntime` / `installPatch` / `bumpRevision` — all pure functions taking explicit arguments (no module-level side effects on import). Unit tests cover them with a mock LocaleRuntime-like class.
-- **19 languages, one file each**: `src/client/dictionaries/<lang>.ts` exports a `dicts: Record<ns, Record<key, string>>` covering all DSH built-in namespaces the plugin translates. Adding a language = add one file + one entry in `BUILTIN_LANGUAGES` + `ALL_LANG_DICTS` (both in `index.tsx`). Key sets are not enforced at compile time across the 19 files; the `gen:translations` script + `TRANSLATION.md` is the human-readable coverage report.
+- **Client-only**: the host half (`src/index.ts`) has an empty `apply`.
+- **Pre-built `lib/` strategy**: `lib/` is committed (not in `.gitignore`); no `prepare` script; `github:` install works out of the box.
+- **Minimal deps**: peer deps are `@deepseek-ai/cordis` + `@deepseek-ai/dsh-client-locale` + `@deepseek-ai/dsh-invariants` (all optional peers). No React, no ui-* packages, zero runtime imports of any DSH module — the `@deepseek-ai/dsh-client-locale/client` reference in `src/client/index.ts` is type-only (erased at build), so the client bundle is pure dictionary data + the apply function.
+- **Alpha deps are not on npm**: `@deepseek-ai/*` packages appear in `peerDependencies` (`^0.1.2-alpha.1`, declaration only) but NOT in `devDependencies`; `autoInstallPeers: false` in `pnpm-workspace.yaml`. Typecheck resolves the DSH graph through absolute `paths` in `tsconfig.json` pointing at the built dsh checkout (`C:/Users/Administrator/.dsh/source/current`, symlinked to `D:\Projects\deepseek-harness\dsh`). Tests need no DSH module resolution (see below).
+- **No settings row**: 0.1.x registered a custom `settings.general.item` row because the override borrowed DSH's English slot. The native catalog makes DSH's own Language row list every registered language, so the row, its slot store, and the plugin's own copy namespace were removed.
 
 ## File responsibilities
 
 | File | Role |
 |------|------|
 | `src/index.ts` | Host entry: `name`, empty `apply` (client-only plugin) |
-| `src/invariant.ts` | `./invariant` companion (empty installer: patch is HMR-proven; localStorage writes are try/catch contained) |
-| `src/client/index.tsx` | Client entry: `inject = ['slots', 'locale']`, registers own copy namespace + constructs store + installs patch + provides service + registers bundled dicts + subscribes store→bumpRevision + registers the settings General-section row |
-| `src/client/store.ts` | `BetterLocaleStore` class: registry of (ns, locale) → dict + active override id + listeners; localStorage persistence |
-| `src/client/patch.ts` | `probeLocaleRuntime` / `installPatch` / `bumpRevision` helpers |
-| `src/client/LanguageRow.tsx` | The settings General-section row component: title on the left, selector pill (Menu) on the right; shows a "switch DSH to English" hint when an override is selected but DSH is not on `en` |
-| `src/client/settings-store.ts` | `createLanguageRowStore` factory: slot store mirroring (active, options, dshActive, revision) for the row component's `PropsStore` |
-| `src/client/locales.ts` | English + Chinese dictionaries for the `dsh-plugin-better-locale` namespace |
-| `src/client/dictionaries/<lang>.ts` | One file per supported language (ja/ko/fr/de/pt/ar/hi/id/tr/vi/th/ru/it/nl/sv/pl/zh-HK/zh-TW/zh-MO): `dicts: Record<ns, Record<key, string>>` covering DSH built-in namespaces |
-| `tests/store.spec.ts` | Unit tests for `BetterLocaleStore` (register / setActive / getOverride / isOverrideActive / subscribe / duplicate throws / disposer) |
-| `tests/patch.spec.ts` | Unit tests for `installPatch` (override wins on en / inert on zh / fallback / idempotent / uninstall restores) + `bumpRevision` (publishes with active unchanged) |
+| `src/invariant.ts` | `./invariant` companion (empty installer: every contribution is a `ctx.effect`, proven by `tests/apply.spec.ts`) |
+| `src/client/index.ts` | Client entry: `inject = ['locale']`; one `ctx.effect` per language registering the catalog entry + all namespace dicts, returning a combined disposer |
+| `src/client/languages.ts` | `BUNDLED_LANGUAGES`: 19 entries of `{ id, label, fallback: 'en', dicts }`; the single place to add a language |
+| `src/client/dictionaries/<lang>.ts` | One file per language: `dicts: Record<ns, Record<key, string>>` covering DSH built-in namespaces (29 at full coverage; fr/it/ko ship a 10-namespace subset). Adding a language = one file + one `BUNDLED_LANGUAGES` entry |
+| `tests/languages.spec.ts` | Catalog invariants: ids unique + BCP 47-style (mirror of upstream `LOCALE_ID_PATTERN`), labels non-empty, fallback `en`, well-shaped dicts, `common`/`settings.locale` covered everywhere |
+| `tests/apply.spec.ts` | Apply wiring against a fake cordis ctx + fake LocaleRuntime (upstream duplicate guards): 19 catalog entries, every (ns, lang) dict pair with identity preserved, disposal clears everything, re-apply after disposal works, double-apply throws |
 | `scripts/generate-translation-md.mjs` | Regenerates `TRANSLATION.md` (translation coverage table) from `src/client/dictionaries/*.ts` |
-| `docs/developer-guide/README.md` | Third-party plugin author guide: how to consume `ctx.betterLocale` and register your plugin's own override dictionaries |
-| `docs/plans/2026-08-23-better-locale-design.md` | Original design document (mechanism rationale, alternatives considered) |
+| `docs/developer-guide/README.md` | Third-party plugin author guide (EN + zh-CN): register your plugin's own third-language dicts through the native `ctx.locale` API |
+| `docs/plans/2026-08-23-better-locale-design.md` | Original design document for the 0.1.x monkey-patch mechanism (historical) |
 
 ## Commands
 
 ```sh
-pnpm run typecheck       # tsc --noEmit (resolves DSH src through ../dsh paths)
-pnpm test                # vitest run (pure-function unit tests)
-pnpm run build           # tsdown + tsc → lib/index.js, lib/invariant.js, lib/client.js
-pnpm run bundle:client   # tsdown only (skip tsc; for fast client rebuilds)
+pnpm run typecheck       # tsc --noEmit (DSH types via tsconfig paths → source/current)
+pnpm test                # vitest run (pure-function unit tests, no module mocks)
+pnpm run build           # tsdown + tsc → lib/index.js, lib/invariant.js, lib/client.js + lib/types
+pnpm run bundle:client   # tsdown only (fast client rebuild)
 pnpm run gen:translations # regenerate TRANSLATION.md from dictionaries/*.ts
 ```
 
 ## Data flow
 
-### Patch install (apply time)
+### Activation
 
-1. `apply(ctx)` runs.
-2. Plugin's own copy namespace (`dsh-plugin-better-locale`) registered with `ctx.locale.register` — zh + en dicts.
-3. Store constructed with `loadActiveFromStorage()` as initial active (page refresh restores last selection).
-4. `probeLocaleRuntime()` checks `LocaleRuntime.prototype.lookup` is a function. If not (upstream refactor), logs console error; `installPatch` will be a no-op.
-5. `installPatch(store)` called inside `ctx.effect`:
-   - Captures `origLookup = proto.lookup`.
-   - Checks `proto.lookup !== origLookup` (already patched by another instance) → no-op + console error.
-   - Wraps `proto.lookup` with a function that calls `store.getOverride(this.getLocale().active, ns, key)` first; if override exists, returns it; else calls `origLookup.call(this, ns, key)`. The override only fires when DSH's active locale is `'en'` (the override borrows DSH's English slot to render a third language); while DSH is on `'zh'` the override is inert and the user sees native zh.
-   - Returns disposer that restores `origLookup` only if the current method is still the wrapper.
-6. `ctx.provide('betterLocale', store)` — service published AFTER patch is installed so consumers' `register` calls (which notify → bumpRevision) hit the patched lookup.
-7. Curated languages (19) + bundled dicts registered (each in its own `ctx.effect` for HMR-safe disposal).
-8. `store.subscribe(() => bumpRevision(ctx.locale))` — wired in `ctx.effect` so subscription released on fiber disposal.
-9. If `store.active !== undefined` at startup (persisted selection), `bumpRevision(ctx.locale)` called once so already-mounted outlets re-render.
-10. The settings General-section row is registered via `ctx.slots.inject('settings.general.item', ...)`. The row's slot store mirrors (active, options, dshActive, revision); two subscriptions keep it in sync: the better-locale store (override changes / language registrations) and DSH's locale service (active locale switches). When an override is selected but DSH is not on `en`, the row shows a hint telling the user to switch DSH to English.
+1. `apply(ctx)` runs with `inject = ['locale']` (the locale service provides `ctx.locale`).
+2. For each of the 19 `BUNDLED_LANGUAGES` entries, one `ctx.effect`:
+   - `ctx.locale.addLanguage({ id, label, fallback: 'en' })` — catalog entry; appears in the native Language row. Throws on duplicate id (guarded by effect disposal on HMR).
+   - `ctx.locale.register(ns, lang, dict)` per namespace — single-locale untyped form; publishes a revision bump so mounted outlets pick up late-arriving dictionaries.
+   - Returns a combined disposer (catalog entry + all dicts), released on fiber disposal.
+3. No subscriptions: every re-render trigger (revision bumps from `register`/`addLanguage`, `locale/change` from user switches) is emitted by the locale service itself.
 
-### Translate call (every render)
+### Language switch (all native)
 
-1. React render triggers `t(key)` somewhere in DSH.
-2. `t` calls `LocaleRuntime.prototype.translate(ns, key, params)`.
-3. `translate` calls `this.lookup(ns, key)` — which is now the patched wrapper.
-4. Patched wrapper calls `store.getOverride(this.getLocale().active, ns, key)`:
-   - If `store.active === undefined` → returns `undefined` (no override; fall back).
-   - If `this.getLocale().active !== 'en'` → returns `undefined` (override borrows the en slot; inert while DSH is on zh).
-   - Else looks up `dicts.get(ns)?.get(store.active)?.[key]` — if defined, returns it; else `undefined`.
-5. If override is `undefined`, wrapper calls `origLookup.call(this, ns, key)` — DSH's native lookup, which reads `this.snapshot.active` (zh or en) and falls back to en.
-6. `translate` interpolates `{name}` placeholders and returns.
-
-### User picks a language (switcher click)
-
-1. User clicks "日本語" in the LanguageRow.
-2. `store.setActive('ja')` — dedupes (no-op if already 'ja'); updates `activeOverride`; persists to localStorage; notifies subscribers.
-3. The apply function's subscription fires: `bumpRevision(ctx.locale)`.
-4. `bumpRevision` calls `(ctx.locale as any).publish(ctx.locale.getLocale().active, true)`:
-   - Snapshots a new object with `revision + 1` (same `active`, same `locales`).
-   - `localeChanged=true` → emits `locale/change` event.
-   - Notifies LocaleFace subscribers (uSES) → React re-renders every outlet.
-5. During re-render, patched `lookup` is consulted → returns ja text where available (only when DSH is on `'en'`); falls back to en where not. If DSH is on `'zh'`, the override is inert and the user sees native zh — the row shows a hint telling the user to switch DSH to English.
+1. User picks 日本語 in Settings → General → Language (DSH's own row).
+2. `locale.setLocale('ja')` — persists `locale.preference` via the settings scope, publishes a new snapshot with `active: 'ja'`, emits `locale/change`.
+3. Every `t(key)` walks the fallback chain `ja` → `en`: plugin dict hit → Japanese; miss → English. Missing namespaces resolve the same way.
 
 ## Gotchas
 
-- **`publish` is private**: `bumpRevision` uses `(locale as unknown as { publish(...) }).publish(...)` to bypass TypeScript. Encapsulated in `patch.ts` so the cast lives in one place. If dsh upstream changes `publish` to ES `#private` (true private field), this breaks at runtime — the startup probe + console.error downgrade is the mitigation, not a fix.
-- **`lookup` is private**: same pattern. The wrapper is installed via `proto.lookup = wrapper` (runtime prototype mutation); TypeScript can't see this, so the wrapper's `this` is typed `LocaleRuntime` and calls `this.getLocale()` (public).
-- **Idempotent patch**: `installPatch` checks `proto.lookup !== origLookup` before patching. If a second better-locale instance tries to patch (HMR bug, duplicate install), it logs an error and skips. The disposer restores `origLookup` only if `proto.lookup === wrapper` (so a double-uninstall or an intervening re-patch is a no-op).
-- **Store is a single instance per fiber**: constructed in `apply`, captured in closures. HMR remount creates a new store, but `loadActiveFromStorage()` re-reads localStorage so the persisted selection recovers. In-memory dict registrations are lost on remount (they re-register via `ctx.effect` on the next apply).
-- **Activation order matters for consumers**: better-locale publishes `ctx.betterLocale` during its `apply()`. Consumer plugins that read `ctx.get('betterLocale')` at their own `apply()` time will get `undefined` if they activate before better-locale (cordis `inject` only sequences declared deps; better-locale is an optional peer, not declared in `inject`). Consumers MUST use the activation-order-safe pattern (subscribe to `ctx.locale` and re-check `ctx.get('betterLocale')` on every revision bump). See `docs/developer-guide/README.md` §Activation order.
-- **`ctx.get` vs `ctx.<name>`**: `ctx.get('betterLocale')` is the documented way to access optional services (DSH AGENTS.md). `ctx.betterLocale` (property proxy) is topology-sensitive and would throw or return undefined unpredictably without `inject` declaration.
-- **Plugin's own copy falls back to en under override**: when the user selects 'ja' override, the plugin's own namespace (`dsh-plugin-better-locale`) has no ja dict, so the patched lookup returns undefined and the original lookup returns en text. The settings row chrome is in English while the user is picking Japanese. Acceptable for MVP (the row's job is to pick the override, not to be itself translated). Future versions can add a ja dict for the plugin's own namespace.
-- **`bumpRevision` fires `locale/change` with unchanged `active`**: this is by design — the override changed, so the effective language changed, even though DSH's `active` field didn't. `attachLocale`-style listeners read `service.getSnapshot().active` and re-render; they don't compare to detect changes. Better-sidebar's `attachLocale` is benign under this pattern. Future listeners that DO compare active before/after would see no change and skip — that's a known limitation, not a bug.
-- **DSH built-in namespace coverage varies by language**: all 19 language files cover the same namespace set (union built in `ALL_NAMESPACES`), but key-level completeness is the translator's responsibility. Missing keys fall back to en at lookup time. The `gen:translations` script + `TRANSLATION.md` is the coverage report.
+- **Dictionary objects must keep stable identity**: `register`'s disposer removes by object identity, so dicts stay module-level constants; `apply` passes them through `Object.entries` without cloning.
+- **Duplicate registration throws** (single occupant for both catalog ids and `(ns, locale)` pairs) — this is why every contribution lives in exactly one `ctx.effect`; never re-register outside a disposed effect.
+- **Fallback is `en` for every language**, including `zh-HK`/`zh-TW`/`zh-MO` (0.1.x behavior parity). A `zh` fallback for the Traditional Chinese variants would reuse the Simplified dictionary for missing keys — known follow-up, not done to keep the adaptation behavior-neutral.
+- **Namespace coverage varies by language**: fr/it/ko ship 10 of the 29 namespaces; `common` + `settings.locale` are covered everywhere (asserted by test). Missing keys fall back to English at lookup; `gen:translations` + `TRANSLATION.md` is the coverage report.
+- **`bumpRevision` / `probeLocaleRuntime` / the store are gone**: the 0.1.x helpers (private `publish` cast, `lookup` prototype patch, localStorage persistence) have no counterpart in the native flow — do not reintroduce them.

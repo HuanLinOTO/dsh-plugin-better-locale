@@ -2,16 +2,13 @@
  * dsh-plugin-better-locale — host plugin entry.
  *
  * Client-only plugin: the host half has no runtime work. The browser half
- * (`./client`) monkey-patches `LocaleRuntime.prototype.lookup` so calls to
- * `ctx.locale`'s translate chain consult the plugin's override store before
- * falling back to DSH's native zh/en dictionaries. The dsh active locale
- * is never mutated — schema, LanguageRow, and `<html lang>` all keep their
- * original behaviour; only the rendered text is replaced when an override
- * translation exists.
- *
- * Persistence: the selected override id is stored in localStorage
- * (`dsh-plugin-better-locale:active`); the dsh `locale.preference` setting
- * is never written, sidestepping the LOCALE_IDS schema enum.
+ * (`./client`) is a pure language pack for DSH's native third-language API
+ * (v0.1.2-alpha.1): it registers bundled catalog entries through
+ * `ctx.locale.addLanguage` and their dictionaries through
+ * `ctx.locale.register(ns, locale, dict)`, so each language becomes
+ * selectable in DSH's own Language settings row with per-key fallback to
+ * English. The dsh `locale.preference` setting carries the selection
+ * natively — no monkey-patching, no localStorage.
  *
  * @module @huanlin/dsh-plugin-better-locale
  */
@@ -19,7 +16,7 @@ import type { Context } from '@deepseek-ai/cordis';
 export declare const name = "dsh-plugin-better-locale";
 export declare const inject: string[];
 /**
- * Host apply — no-op. The locale override layer is a pure client-side
+ * Host apply — no-op. The language-pack layer is a pure client-side
  * contribution; no host-side resources are used.
  * @param _ctx - host context (unused).
  */
