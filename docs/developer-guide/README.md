@@ -6,9 +6,16 @@ For **third-party plugin authors**: how to make your plugin's UI copy available 
 
 > **DSH ≥ v0.1.2-alpha.1 required.** Since that release the plugin is a pure language pack on DSH's native language-pack API. The 0.1.x integration (the `ctx.betterLocale` service, the activation-order-safe pattern around it, and the "switch DSH to English first" constraint) is gone.
 
+## Scope and boundary
+
+- **better-locale translates DSH's own built-in namespaces only** (`common`, `conversation`, `settings.*`, ... — everything merged into DSH's `LocaleNamespaceMap`), in 19 languages. Its dictionary scope is machine-locked to that table at compile time.
+- **Your plugin's namespaces belong to you.** Register their third-language dictionaries yourself through the native `ctx.locale` API (this guide).
+- The two never collide: better-locale registers `(built-in ns, third language)` slots; you register `(your ns, locale)` slots. One `(ns, locale)` dictionary has exactly one owner, enforced by DSH (duplicate `register` throws). Never register a built-in namespace for a third language — those slots are occupied by better-locale and the later registration fails at load.
+
 ## Contents
 
 - [How it works now](#how-it-works-now)
+- [Behavior of unmigrated plugins](#behavior-of-unmigrated-plugins)
 - [Adding third-language dictionaries to your plugin](#adding-third-language-dictionaries-to-your-plugin)
 - [Adding a language better-locale does not ship](#adding-a-language-better-locale-does-not-ship)
 - [Testing your integration](#testing-your-integration)
@@ -26,9 +33,21 @@ ctx.locale.register('conversation', 'ja', {...})
 ...
 ```
 
-Everything else is DSH's own locale service: the language shows up in the native Language settings row, picking it writes the durable `locale.preference` setting, `<html lang>` follows, and translation lookups walk the per-key fallback chain (`ja` → `en`). There is no `ctx.betterLocale` service, no monkey-patching, no localStorage, and no dependence on the active locale being `en`.
+Everything else is DSH's own locale service: the language shows up in the native Language settings row, picking it writes the durable `locale.preference` setting, `<html lang>` follows, and translation lookups walk the per-key fallback chain (`ja` → `en`; the Traditional Chinese variants declare `zh-HK/zh-TW/zh-MO` → `zh` → `en`). There is no `ctx.betterLocale` service, no monkey-patching, no localStorage, and no dependence on the active locale being `en`.
 
 To make **your plugin** speak a third language, register dictionaries for the same locale id through `ctx.locale` — exactly like you already do for zh/en.
+
+---
+
+## Behavior of unmigrated plugins
+
+A plugin that never registers anything beyond its own zh/en dictionaries coexists with better-locale **with zero configuration and zero errors**:
+
+- Your `(your-ns, 'zh'/'en')` registrations and better-locale's `(built-in ns, 19 third languages)` registrations share no slot, so nothing throws.
+- When the user picks e.g. 日本語, DSH chrome switches via better-locale's dictionaries; **your plugin's copy falls back along the per-key chain to English** — unchanged behavior, readable, no breakage.
+- The Language row, `locale.preference` persistence, and `<html lang>` sync are all native DSH behavior — they apply to your plugin for free whether or not you migrate.
+
+Migrating (below) is purely additive: your namespace's keys start resolving in the selected language instead of English.
 
 ---
 
@@ -151,5 +170,5 @@ describe('dictionaries key-set integrity', () => {
 |---|---|
 | Language missing from the Language row | Its catalog entry was not registered (for the 19 bundled ids: better-locale not installed / not activated) |
 | UI shows English for your keys | Your dictionary lacks the keys, or your register call did not run (check the console for duplicate-`register` throws) |
-| `locale namespace "X" already has locale "ja"` | Another registration owns that pair; one `(ns, locale)` dictionary has exactly one owner |
+| `locale namespace "X" already has locale "ja"` | Another registration owns that pair; one `(ns, locale)` dictionary has exactly one owner. If `X` is a **DSH built-in namespace** (`common`, `conversation`, ...), the owner is better-locale — register only your own namespaces |
 | Selection lost after restart | DSH's `locale.preference` write failed (check the settings service) — selection no longer lives in localStorage |

@@ -39,8 +39,13 @@ export interface BundledLanguage {
   readonly id: string
   /** Display name written in the represented language. */
   readonly label: string
-  /** Per-key fallback locale; always a DSH built-in (`'en'`). */
-  readonly fallback: 'en'
+  /**
+   * Per-key fallback locale: a DSH built-in. The Traditional Chinese
+   * variants fall back to `zh` (missing keys show Simplified rather than
+   * English); every other language falls back to `en`. Chains always
+   * terminate at `en` as upstream requires.
+   */
+  readonly fallback: 'en' | 'zh'
   /** Dictionaries keyed by DSH namespace id (`common`, `settings.locale`, ...). */
   readonly dicts: Record<string, Record<string, string>>
 }
@@ -66,7 +71,7 @@ export const BUNDLED_LANGUAGES: readonly BundledLanguage[] = [
   { id: 'nl', label: 'Nederlands', fallback: 'en', dicts: nlDicts },
   { id: 'sv', label: 'Svenska', fallback: 'en', dicts: svDicts },
   { id: 'pl', label: 'Polski', fallback: 'en', dicts: plDicts },
-  { id: 'zh-HK', label: '繁體中文（香港）', fallback: 'en', dicts: zhHKDicts },
-  { id: 'zh-TW', label: '繁體中文（台灣）', fallback: 'en', dicts: zhTWDicts },
-  { id: 'zh-MO', label: '繁體中文（澳門）', fallback: 'en', dicts: zhMODicts },
+  { id: 'zh-HK', label: '繁體中文（香港）', fallback: 'zh', dicts: zhHKDicts },
+  { id: 'zh-TW', label: '繁體中文（台灣）', fallback: 'zh', dicts: zhTWDicts },
+  { id: 'zh-MO', label: '繁體中文（澳門）', fallback: 'zh', dicts: zhMODicts },
 ]

@@ -6,7 +6,7 @@
 
 [中文](README.zh-CN.md) | **English**
 
-A DSH web plugin that ships bundled third-language dictionaries (Japanese / Korean / French / German / ... — 19 languages) for DSH's native i18n. Languages are registered through DSH v0.1.2-alpha.1's native language-pack API (`locale.addLanguage` + `locale.register(ns, locale, dict)`), so they appear directly in DSH's own Language settings row; uncovered copy falls back to English per key.
+A DSH web plugin that ships bundled third-language dictionaries (Japanese / Korean / French / German / ... — 19 languages) for DSH's own built-in UI namespaces, plus a compile-time **drift engine** that keeps the dictionaries tracking every DSH release. Languages are registered through DSH v0.1.2-alpha.1's native language-pack API (`locale.addLanguage` + `locale.register(ns, locale, dict)`), so they appear directly in DSH's own Language settings row; uncovered copy falls back along DSH's per-key fallback chain.
 
 | | |
 |---|---|
@@ -55,12 +55,13 @@ After install, restart `dsh web` and hard-refresh the browser (`Ctrl+Shift+R`).
 
 Open **Settings → General → Language**: every bundled language is listed alongside DSH's built-in 中文 / English. Pick one and the whole UI switches immediately — the selection persists in DSH's durable `locale.preference` setting (survives browsers and devices sharing the same DSH home), and `<html lang>` follows.
 
-Uncovered namespaces / keys fall back to English through DSH's per-key fallback chain (selected language → `en`). Coverage table: `TRANSLATION.md` (regenerate with `pnpm run gen:translations`).
+Uncovered namespaces / keys fall back through DSH's per-key fallback chain (selected language → declared fallback → `en`; the Traditional Chinese variants declare `zh`, so their gaps show Simplified Chinese rather than English). Coverage table: `TRANSLATION.md` (regenerate with `pnpm run gen:translations`).
 
-## Coverage
+## Coverage & scope
 
-- **DSH itself:** built-in namespaces (`common` / `settings.locale` / `command` / ... — 29 namespaces at full coverage, some languages partial) — see `src/client/dictionaries/<lang>.ts`.
-- **Third-party plugins:** any plugin can add its own dictionaries for these languages directly through the native API (`ctx.locale.register(ns, locale, dict)`) — no better-locale-specific integration needed. See the [Developer Guide](docs/developer-guide/README.md).
+- **DSH itself only:** the dictionaries translate DSH's built-in namespaces (`common` / `settings.locale` / `command` / ... — every namespace merged into DSH's `LocaleNamespaceMap`, 27 namespaces / 893 keys × 19 languages at current coverage). The scope is **machine-locked at compile time**: `pnpm typecheck` fails if the dictionaries miss an upstream namespace/key (drift) or carry one upstream does not own (trespass).
+- **The drift engine:** after upgrading the DSH checkout, run `pnpm typecheck` — red means upstream added or renamed copy; translate until green. `scripts/check-upstream-merges.mjs` (part of the same command) fails when a new upstream merge module is not yet imported by the assertion file, so new namespaces can never slip in unnoticed.
+- **Third-party plugins are out of scope by design:** a plugin's own namespaces belong to that plugin. Unmigrated plugins coexist with zero errors (their copy falls back to English); migration is a few lines of native API — see the [Developer Guide](docs/developer-guide/README.md).
 
 ## Migration from 0.1.x (v0.1.2-alpha.1 adaptation)
 
@@ -73,8 +74,9 @@ Uncovered namespaces / keys fall back to English through DSH's per-key fallback 
 
 ## Known limitations
 
-- **Coverage is partial:** uncovered namespaces / keys fall back to English. See `TRANSLATION.md`.
-- **Traditional Chinese variants fall back to English:** `zh-HK` / `zh-TW` / `zh-MO` declare `fallback: 'en'`; a `zh` fallback would reuse the Simplified dictionary for missing keys (possible follow-up).
+- **Coverage is a process, not a promise:** the dictionaries track the upstream merge table exactly at each release of this plugin (currently 27 namespaces / 893 keys × 19 languages); between a DSH upgrade and a better-locale update, new upstream copy falls back along the fallback chain. Run `pnpm typecheck` in the repo to see any gap.
+- **Traditional Chinese variants fall back to Simplified Chinese:** `zh-HK` / `zh-TW` / `zh-MO` declare `fallback: 'zh'` — missing keys show the Simplified dictionary (chain `zh-TW` → `zh` → `en`), not English.
+- **Third-party plugin copy is not translated here:** those namespaces belong to their plugins (see the Developer Guide); expect English for unmigrated plugins while a third language is active.
 - **Web only:** the client bundle targets the browser; it does not run in Node.
 
 ## License

@@ -18,8 +18,13 @@ export interface BundledLanguage {
     readonly id: string;
     /** Display name written in the represented language. */
     readonly label: string;
-    /** Per-key fallback locale; always a DSH built-in (`'en'`). */
-    readonly fallback: 'en';
+    /**
+     * Per-key fallback locale: a DSH built-in. The Traditional Chinese
+     * variants fall back to `zh` (missing keys show Simplified rather than
+     * English); every other language falls back to `en`. Chains always
+     * terminate at `en` as upstream requires.
+     */
+    readonly fallback: 'en' | 'zh';
     /** Dictionaries keyed by DSH namespace id (`common`, `settings.locale`, ...). */
     readonly dicts: Record<string, Record<string, string>>;
 }

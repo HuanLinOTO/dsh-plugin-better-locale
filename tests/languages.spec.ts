@@ -45,9 +45,10 @@ describe('BUNDLED_LANGUAGES', () => {
     }
   })
 
-  it('falls back to the built-in English locale', () => {
+  it('falls back to a built-in locale: zh for the Traditional Chinese variants, en otherwise', () => {
     for (const language of BUNDLED_LANGUAGES) {
-      expect(language.fallback).toBe('en')
+      const expected = language.id.startsWith('zh-') ? 'zh' : 'en'
+      expect(language.fallback, language.id).toBe(expected)
     }
   })
 
