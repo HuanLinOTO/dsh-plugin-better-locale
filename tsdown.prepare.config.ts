@@ -27,7 +27,7 @@ const CLIENT_EXTERNALS = [
 
 const libConfig: UserConfig = {
   name: ID,
-  entry: ['src/index.ts', 'src/invariant.ts'],
+  entry: ['src/index.ts'],
   outDir: 'lib',
   format: ['esm'],
   platform: 'node',

@@ -2,7 +2,6 @@
  * Dev/CI tsdown config: emits three artifacts:
  *
  *   - `lib/index.js`      — node half (plain ESM, bundles src/index.ts)
- *   - `lib/invariant.js`  — node half (plain ESM, bundles src/invariant.ts)
  *   - `lib/client.js`     — browser half (CJS wrapped in DSH's
  *                            `window.__ModuleLoader__.load({id, factory})`
  *                            so the client module loader can compose it)
@@ -22,7 +21,6 @@ const ID = '@huanlin/dsh-plugin-better-locale'
 const HOST_EXTERNALS = [
   '@deepseek-ai/cordis',
   '@deepseek-ai/dsh-client-locale',
-  '@deepseek-ai/dsh-invariants',
 ]
 
 /** DSH platform modules that stay external in the browser bundle. */
@@ -37,7 +35,7 @@ const CLIENT_EXTERNALS = [
 
 const libConfig: UserConfig = {
   name: ID,
-  entry: { index: 'src/index.ts', invariant: 'src/invariant.ts' },
+  entry: { index: 'src/index.ts' },
   outDir: 'lib',
   format: ['esm'],
   platform: 'node',

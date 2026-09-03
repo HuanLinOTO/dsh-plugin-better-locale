@@ -12,8 +12,12 @@ DSH web 插件：为 DSH 本体内置 UI 命名空间内置 19 种第三语言�
 |---|---|
 | **包名** | `@huanlin/dsh-plugin-better-locale` |
 | **仓库** | `huanlinoto/dsh-plugin-better-locale` |
-| **要求** | DSH `dsh-v0.1.2-alpha.1` 及以上 |
+| **要求** | DSH `dsh-v0.1.2-rc.1` 及以上 |
 | **License** | AGPL-3.0 |
+
+## Invariant 说明
+
+本包**不发布 `./invariant` 导出**。按 v0.1.2-rc.1 起生效的 DSH invariant 规则，只有存在可分歧的独立观察时才发布 invariant；本插件所有语言贡献（目录项 + 命名空间字典）都通过 `ctx.effect` 注册，fiber 销毁 / HMR 会精确移除所加内容（由 `tests/apply.spec.ts` 覆盖），插件自身无可变状态——因此移除了原空 invariant 伴随插件。
 
 ## 支持的语言
 

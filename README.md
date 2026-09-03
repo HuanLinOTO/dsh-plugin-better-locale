@@ -12,8 +12,12 @@ A DSH web plugin that ships bundled third-language dictionaries (Japanese / Kore
 |---|---|
 | **Package** | `@huanlin/dsh-plugin-better-locale` |
 | **Repo** | `huanlinoto/dsh-plugin-better-locale` |
-| **Requires** | DSH `dsh-v0.1.2-alpha.1` or newer |
+| **Requires** | DSH `dsh-v0.1.2-rc.1` or newer |
 | **License** | AGPL-3.0 |
+
+## Invariants
+
+This package publishes **no `./invariant` export**. Per the DSH invariant rules effective since v0.1.2-rc.1, an invariant is only published when independent observations can diverge; here every language contribution (catalog entry + namespace dictionaries) is registered through `ctx.effect`, so fiber disposal / HMR removes exactly what was added (covered by `tests/apply.spec.ts`), and the plugin holds no mutable state of its own — the empty invariant companion was therefore removed.
 
 ## Supported languages
 

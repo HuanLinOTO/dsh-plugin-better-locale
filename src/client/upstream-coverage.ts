@@ -30,6 +30,7 @@
 // `scripts/check-upstream-merges.mjs`, which diffs this list against the
 // upstream source tree and fails when they diverge.
 import type {} from '@deepseek-ai/dsh-client-locale/client'
+import type {} from '@deepseek-ai/dsh-client-ui-agent-preset/client'
 import type {} from '@deepseek-ai/dsh-client-ui-approval/client/contract/slots'
 import type {} from '@deepseek-ai/dsh-client-ui-chat/client/contract/slots'
 import type {} from '@deepseek-ai/dsh-client-ui-commands/client'
@@ -42,6 +43,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-message-feedback/client/locales'
 import type {} from '@deepseek-ai/dsh-client-ui-model-selection/client'
 import type {} from '@deepseek-ai/dsh-client-ui-plan/client'
 import type {} from '@deepseek-ai/dsh-client-ui-reference/client/locales'
+import type {} from '@deepseek-ai/dsh-client-ui-schedule/client'
 import type {} from '@deepseek-ai/dsh-client-ui-settings-general/client'
 import type {} from '@deepseek-ai/dsh-client-ui-settings-models/client'
 import type {} from '@deepseek-ai/dsh-client-ui-settings-plugin-inventory/client'
