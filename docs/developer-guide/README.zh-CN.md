@@ -61,7 +61,7 @@ ctx.locale.register('conversation', 'ja', {...})
 {
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
-    "@deepseek-ai/dsh-client-locale": "^0.1.2-alpha.1"
+    "@deepseek-ai/dsh-client-locale": "^0.1.5-rc.1"
   },
   "peerDependenciesMeta": {
     "@deepseek-ai/dsh-client-locale": { "optional": true }

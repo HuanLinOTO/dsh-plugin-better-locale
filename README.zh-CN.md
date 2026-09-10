@@ -63,7 +63,7 @@ dsh plugin --profile web add "github:huanlinoto/dsh-plugin-better-locale"
 
 ## 覆盖范围与边界
 
-- **只做 DSH 本体**：词典翻译的是 DSH 内置命名空间（`common` / `settings.locale` / `command` / 等——合并进 DSH `LocaleNamespaceMap` 的全部条目，当前 27 命名空间 / 893 key × 19 语言）。范围被**编译期机器锁死**：`pnpm typecheck` 在词典缺失上游命名空间 / key（跟版缺口）或出现上游不存在的条目（越界插足）时直接失败。
+- **只做 DSH 本体**：词典翻译的是 DSH 内置命名空间（`common` / `settings.locale` / `command` / 等——合并进 DSH `LocaleNamespaceMap` 的全部条目，当前 39 命名空间 / 1233 key × 19 语言）。范围被**编译期机器锁死**：`pnpm typecheck` 在词典缺失上游命名空间 / key（跟版缺口）或出现上游不存在的条目（越界插足）时直接失败。
 - **跟版引擎**：升级 DSH checkout 后跑 `pnpm typecheck`——红即上游新增 / 改名了文案，补翻译至绿。同一命令里的 `scripts/check-upstream-merges.mjs` 会在上游出现新的 merge 模块而断言文件未引入时失败，新命名空间不会被静默漏掉。
 - **第三方插件不在此列（设计如此）**：插件自己的命名空间归插件作者。未迁移插件零报错共存（其文案回退英文）；迁移只需几行原生 API——见[开发者指南](docs/developer-guide/README.zh-CN.md)。
 
@@ -78,7 +78,7 @@ dsh plugin --profile web add "github:huanlinoto/dsh-plugin-better-locale"
 
 ## 已知限制
 
-- **覆盖是一个过程而非承诺**：词典在本插件每次发布时与上游 merge 表精确对齐（当前 27 命名空间 / 893 key × 19 语言）；DSH 升级后到 better-locale 更新前，新增上游文案沿 fallback 链回退。仓库内跑 `pnpm typecheck` 可见全部缺口。
+- **覆盖是一个过程而非承诺**：词典在本插件每次发布时与上游 merge 表精确对齐（当前 39 命名空间 / 1233 key × 19 语言）；DSH 升级后到 better-locale 更新前，新增上游文案沿 fallback 链回退。仓库内跑 `pnpm typecheck` 可见全部缺口。
 - **繁体中文变体回退简体中文**：`zh-HK` / `zh-TW` / `zh-MO` 声明的 fallback 是 `zh`——缺失 key 显示简体字典（链 `zh-TW` → `zh` → `en`），而非英文。
 - **不翻译第三方插件文案**：那些命名空间归各插件（见开发者指南）；未迁移插件在第三语言激活时显示英文。
 - **仅 web 平台**：client bundle 为浏览器设计，不在 node 端运行。

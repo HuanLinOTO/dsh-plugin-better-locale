@@ -12,7 +12,7 @@ A DSH web plugin that ships bundled third-language dictionaries (Japanese / Kore
 |---|---|
 | **Package** | `@huanlin/dsh-plugin-better-locale` |
 | **Repo** | `huanlinoto/dsh-plugin-better-locale` |
-| **Requires** | DSH `dsh-v0.1.2-rc.1` or newer |
+| **Requires** | DSH `dsh-v0.1.5-rc.1` or newer |
 | **License** | AGPL-3.0 |
 
 ## Invariants
@@ -63,7 +63,7 @@ Uncovered namespaces / keys fall back through DSH's per-key fallback chain (sele
 
 ## Coverage & scope
 
-- **DSH itself only:** the dictionaries translate DSH's built-in namespaces (`common` / `settings.locale` / `command` / ... — every namespace merged into DSH's `LocaleNamespaceMap`, 27 namespaces / 893 keys × 19 languages at current coverage). The scope is **machine-locked at compile time**: `pnpm typecheck` fails if the dictionaries miss an upstream namespace/key (drift) or carry one upstream does not own (trespass).
+- **DSH itself only:** the dictionaries translate DSH's built-in namespaces (`common` / `settings.locale` / `command` / ... — every namespace merged into DSH's `LocaleNamespaceMap`, 39 namespaces / 1233 keys × 19 languages at current coverage). The scope is **machine-locked at compile time**: `pnpm typecheck` fails if the dictionaries miss an upstream namespace/key (drift) or carry one upstream does not own (trespass).
 - **The drift engine:** after upgrading the DSH checkout, run `pnpm typecheck` — red means upstream added or renamed copy; translate until green. `scripts/check-upstream-merges.mjs` (part of the same command) fails when a new upstream merge module is not yet imported by the assertion file, so new namespaces can never slip in unnoticed.
 - **Third-party plugins are out of scope by design:** a plugin's own namespaces belong to that plugin. Unmigrated plugins coexist with zero errors (their copy falls back to English); migration is a few lines of native API — see the [Developer Guide](docs/developer-guide/README.md).
 
@@ -78,7 +78,7 @@ Uncovered namespaces / keys fall back through DSH's per-key fallback chain (sele
 
 ## Known limitations
 
-- **Coverage is a process, not a promise:** the dictionaries track the upstream merge table exactly at each release of this plugin (currently 27 namespaces / 893 keys × 19 languages); between a DSH upgrade and a better-locale update, new upstream copy falls back along the fallback chain. Run `pnpm typecheck` in the repo to see any gap.
+- **Coverage is a process, not a promise:** the dictionaries track the upstream merge table exactly at each release of this plugin (currently 39 namespaces / 1233 keys × 19 languages); between a DSH upgrade and a better-locale update, new upstream copy falls back along the fallback chain. Run `pnpm typecheck` in the repo to see any gap.
 - **Traditional Chinese variants fall back to Simplified Chinese:** `zh-HK` / `zh-TW` / `zh-MO` declare `fallback: 'zh'` — missing keys show the Simplified dictionary (chain `zh-TW` → `zh` → `en`), not English.
 - **Third-party plugin copy is not translated here:** those namespaces belong to their plugins (see the Developer Guide); expect English for unmigrated plugins while a third language is active.
 - **Web only:** the client bundle targets the browser; it does not run in Node.

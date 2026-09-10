@@ -5,9 +5,9 @@
  * imports; a merge upstream forgot here would silently narrow the assertion's
  * namespace table. This script scans the DSH checkout for every
  * `LocaleNamespaceMap` merge (an indented `interface LocaleNamespaceMap {`
- * declaration with members — the base declaration in ui-slots and signature
- * text inside string literals never match) and diffs the discovered module
- * list against the assertion file's imports.
+ * declaration with members — the base declaration in ui-slots, the signature
+ * text inside string literals, and test-only merges never match) and diffs
+ * the discovered module list against the assertion file's imports.
  *
  * Fails with the exact import lines to add or remove. Run via
  * `pnpm typecheck`. Override the checkout root with DSH_SOURCE_ROOT
@@ -19,7 +19,7 @@ import { join, dirname, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const SOURCE_ROOT = process.env.DSH_SOURCE_ROOT ?? 'C:/Users/Administrator/.dsh/source/current'
+const SOURCE_ROOT = process.env.DSH_SOURCE_ROOT ?? 'D:/Projects/deepseek-harness/dsh'
 const PACKAGES = join(SOURCE_ROOT, 'packages')
 const COVERAGE_FILE = join(ROOT, 'src', 'client', 'upstream-coverage.ts')
 
@@ -32,7 +32,7 @@ if (!existsSync(PACKAGES)) {
   process.exit(1)
 }
 
-/** Every .ts file under packages/<group>/<pkg>/src/client (experimental excluded). */
+/** Every .ts/.tsx file under packages/<group>/<pkg>/src/client (experimental excluded). */
 function walkClient(dir, out = []) {
   for (const e of readdirSync(dir, { withFileTypes: true })) {
     if (e.name === 'node_modules' || e.name === 'lib') continue
@@ -40,7 +40,10 @@ function walkClient(dir, out = []) {
     if (e.isDirectory()) {
       if (p.replaceAll(sep, '/').includes('/packages/experimental/')) continue
       walkClient(p, out)
-    } else if (e.name.endsWith('.ts')) out.push(p)
+    } else if (
+      (e.name.endsWith('.ts') || e.name.endsWith('.tsx'))
+      && p.replaceAll(sep, '/').includes('/src/client/')
+    ) out.push(p)
   }
   return out
 }
@@ -61,7 +64,7 @@ function mergeSpecifier(file) {
   if (pkgRoot === null) return null
   const pkg = JSON.parse(readFileSync(join(pkgRoot, 'package.json'), 'utf8')).name
   const rel = relative(pkgRoot, file).replaceAll(sep, '/')
-  const sub = rel.replace(/^src\//, '').replace(/\.ts$/, '').replace(/\/index$/, '')
+  const sub = rel.replace(/^src\//, '').replace(/\.tsx?$/, '').replace(/\/index$/, '')
   return sub === '' ? pkg : `${pkg}/${sub}`
 }
 

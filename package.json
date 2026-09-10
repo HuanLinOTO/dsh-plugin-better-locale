@@ -1,11 +1,11 @@
 {
   "name": "@huanlin/dsh-plugin-better-locale",
-  "version": "0.3.1",
+  "version": "0.4.1",
   "publishConfig": {
     "access": "public"
   },
   "keywords": ["dsh-plugin"],
-  "description": "DSH web 插件：通过 DSH v0.1.2-alpha.1 原生第三方语言 API（locale.addLanguage + register(ns, locale, dict)）注册 19 种内置语言字典（ja/ko/fr/...），语言直接出现在 DSH 设置页原生 Language 行中切换，未覆盖文案按 fallback 链回退英文。 | DSH web plugin: registers 19 bundled third-language dictionaries (ja/ko/fr/...) through DSH v0.1.2-alpha.1's native language-pack API (locale.addLanguage + register(ns, locale, dict)); languages become selectable in DSH's own Language settings row, with per-key fallback to English.",
+  "description": "DSH web 插件：通过 DSH v0.1.5-rc.1 原生第三方语言 API（locale.addLanguage + register(ns, locale, dict)）注册 19 种内置语言字典（ja/ko/fr/...），语言直接出现在 DSH 设置页原生 Language 行中切换，未覆盖文案按 fallback 链回退英文。 | DSH web plugin: registers 19 bundled third-language dictionaries (ja/ko/fr/...) through DSH v0.1.5-rc.1's native language-pack API (locale.addLanguage + register(ns, locale, dict)); languages become selectable in DSH's own Language settings row, with per-key fallback to English.",
   "type": "module",
   "license": "AGPL-3.0",
   "main": "./lib/index.js",
@@ -46,7 +46,7 @@
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
-    "@deepseek-ai/dsh-client-locale": "^0.1.2-rc.1"
+    "@deepseek-ai/dsh-client-locale": "^0.1.5-rc.1"
   },
   "peerDependenciesMeta": {
     "@deepseek-ai/cordis": { "optional": true },
