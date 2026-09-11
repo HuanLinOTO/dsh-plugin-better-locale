@@ -57,6 +57,20 @@ export declare const dicts: {
         'language.title': string;
     };
     command: {
+        'section.add': string;
+        'section.commands': string;
+        'label.goal': string;
+        'label.plan': string;
+        'label.feedback': string;
+        'label.compact': string;
+        'label.permission': string;
+        'label.export': string;
+        'token.goal': string;
+        'token.plan': string;
+        'token.feedback': string;
+        'token.compact': string;
+        'token.permission': string;
+        'token.export': string;
         'search.placeholder': string;
         'search.aria': string;
         'status.loading': string;
@@ -86,6 +100,7 @@ export declare const dicts: {
         'placeholder.hero': string;
         'placeholder.workspace': string;
         'input.commands': string;
+        'input.file': string;
         'input.stop': string;
         'input.send': string;
         'placeholder.steerQueue': string;
@@ -217,7 +232,6 @@ export declare const dicts: {
         'attachment.dropTitle': string;
         'attachment.dropDesc': string;
         'attachment.dropBlocked': string;
-        'file.attach': string;
         'file.pending': string;
         'file.remove': string;
         'file.uploading': string;
@@ -289,6 +303,7 @@ export declare const dicts: {
         'message.tokensPerSecond': string;
         'duration.seconds': string;
         'duration.minutes': string;
+        'duration.hours': string;
         'command.running': string;
         'command.failed': string;
         'command.done': string;
@@ -383,7 +398,6 @@ export declare const dicts: {
         'row.error': string;
         'row.stopped': string;
         'row.inspect': string;
-        'presented.open': string;
     };
     goal: {
         'phase.active': string;
@@ -450,6 +464,7 @@ export declare const dicts: {
         'error.noteTooLarge': string;
     };
     model: {
+        'command.label': string;
         'command.description': string;
         'option.loadError': string;
         'trigger.fallback': string;
@@ -1080,6 +1095,7 @@ export declare const dicts: {
         displayName: string;
         displayNamePlaceholder: string;
         inUse: string;
+        selectionOffDefault: string;
         builtInGroup: string;
         customGroup: string;
         noDescription: string;
@@ -1105,6 +1121,11 @@ export declare const dicts: {
         deleteDescription: string;
         deleteConfirm: string;
         deleting: string;
+        showPicker: string;
+        showPickerBeta: string;
+        showPickerDescription: string;
+        enablePickerToSetDefault: string;
+        enablePickerToCreate: string;
     };
     'schedule.catalog': {
         'trigger.one': string;
