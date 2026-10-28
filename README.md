@@ -12,7 +12,7 @@ A DSH web plugin that ships bundled third-language dictionaries (Japanese / Kore
 |---|---|
 | **Package** | `@huanlin/dsh-plugin-better-locale` |
 | **Repo** | `huanlinoto/dsh-plugin-better-locale` |
-| **Requires** | DSH `dsh-v0.1.5-rc.1` or newer |
+| **Requires** | DSH `dsh-v0.1.7-rc.1` or newer |
 | **License** | AGPL-3.0 |
 
 ## Invariants
